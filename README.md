@@ -4,32 +4,7 @@ Below are the exact code snippets for the fixes implemented across both the `tra
 
 ---
 
-### BUG 1: App crashing internally due to missing SendGrid library checks
-**File:** `redflags/utils.py`
-
-**Before:**
-```python
-    try:
-        from sendgrid import SendGridAPIClient
-        from sendgrid.helpers.mail import (
-            Mail, Email, To, Content, Attachment,
-            FileContent, FileName, FileType, Disposition
-        )
-    except ImportError:
-        print("[RF] SendGrid library not installed. Doctor email will NOT be sent.")
-        return False
-```
-
-**After:**
-```python
-    # IMPORT BLOCK REMOVED ENTIRELY 
-```
-
-**Explanation:** In a local or separate test environment (which might not have `sendgrid` globally pip installed), this block was intercepting the email request and instantly terminating it with `return False`. Removing the imports from this global utility scope prevented the execution from halting early and allowed the fallback systems to kick in.
-
----
-
-### BUG 2: Adding a Django SMTP Email Fallback
+### BUG 1: Adding a Django SMTP Email Fallback
 **File:** `redflags/mails.py`
 
 **Before:**
@@ -94,7 +69,7 @@ def send_email_via_sendgrid(to, title, body, attachments=None, from_email=None, 
 
 ---
 
-### BUG 3: Email Generation Logic was Commented Out
+### BUG 2: Email Generation Logic was Commented Out
 **File:** `redflags/views.py`
 
 **Before:**
@@ -145,24 +120,7 @@ def send_email_via_sendgrid(to, title, body, attachments=None, from_email=None, 
 
 ---
 
-### BUG 4: Terminal console interception
-**File:** `project/settings.py`
-
-**Before:**
-```python
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-```
-
-**After:**
-```python
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-```
-
-**Explanation:** Using `console.EmailBackend` redirects the generated email text stream directly to standard output (the terminal) so you don't accidentally spam servers during tests. By modifying the routing directly into the `smtp.EmailBackend` parameter, Django correctly utilized your `.env` `EMAIL_HOST_USER` and Google App Password variables and sent the data payload out of the terminal completely.
-
----
-
-### BUG 5: Missing Patient HTML Loop block mapping
+### BUG 3: Missing Patient HTML Loop block mapping
 **File:** `content-server-folder/templates/reports/patient_report.html`
 
 **Before:**
@@ -212,7 +170,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 ---
 
-### BUG 6: Doctor report structural formatting
+### BUG 4: Doctor report structural formatting
 **File:** `content-server-folder/templates/reports/doctor_report.html`
 
 **Before:**
